@@ -39,6 +39,9 @@ def sgd(w, dw, config=None):
     """
     if config is None: config = {}
     config.setdefault('learning_rate', 1e-2)
-
+    print("hi")
+    print(config['learning_rate'])
+    print("Bye")
+     
     w -= config['learning_rate'] * dw
     return w, config
