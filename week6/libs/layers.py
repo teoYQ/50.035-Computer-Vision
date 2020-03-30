@@ -63,17 +63,9 @@ def affine_backward(dout, cache):
     # TODO: Implement the affine backward pass.                               #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    D = w.shape[0]
-    N = dout.shape[0]
-    
-    db = np.sum(dout, axis = 0, keepdims = True)
-    dw = x.reshape(N, D).T.dot(dout)
-    dx_template = dout.dot(w.T)
-    dx = np.zeros(x.shape)
-    for i in range(N):
-        dx[i] = dx_template[i].reshape(np.delete(x.shape, 0))
-
+    dx = dout.dot(w.T).reshape(x.shape)
+    dw = x.reshape(x.shape[0], -1).T.dot(dout)
+    db = np.sum(dout, axis=0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -180,7 +172,8 @@ def dropout_forward(x, dropout_param):
         # Store the dropout mask in the mask variable.                        #
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+        mask = np.random.binomial(1, p, size=x.shape) / p
+        out = x* mask
         pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -193,7 +186,7 @@ def dropout_forward(x, dropout_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        out = x
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -224,7 +217,10 @@ def dropout_backward(dout, cache):
         # TODO: Implement training phase backward pass for inverted dropout   #
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+        dx = dout * mask
+        p = dropout_param['p']
+        # print(p)
+        dx /= p
         pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -366,17 +362,19 @@ def max_pool_forward_naive(x, pool_param):
     # TODO: Implement the max-pooling forward pass                            #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    N, C, H, W = x.shape                 # (batch size, channel size, height, width)
+    N, C, H, W = x.shape
     pool_height = pool_param['pool_height']
     pool_width = pool_param['pool_width']
     stride = pool_param['stride']
     H_out = 1 + (H - pool_height) // stride
     W_out = 1 + (W - pool_width) // stride
     out = np.zeros((N, C, H_out, W_out))
-    for i in range (N): #choose 1 image
-        for j in range(H_out):
-            for k in range(W_out):
-                out[i,:,j,k] = np.max(x[i,:,j:j*stride + pool_height,k:k*stride + pool_width],axis=(1,2))
+
+    for n in range(N):
+    	for h_out in range(H_out):
+    		for w_out in range(W_out):
+    			out[n, :, h_out, w_out] = np.max(x[n, :, h_out*stride:h_out*stride+pool_height,
+    				w_out*stride:w_out*stride+pool_width], axis=(-1, -2))
                 
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
